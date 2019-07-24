@@ -35,16 +35,22 @@ To prepare the environment:
 --
 
 ## Content
-### Section 1
 
 * [Lab 1 - Accessing the sandbox](#accessing-the-sandbox)
-* [Lab 2 - Prepare your instance for labs](#prepare-your-instance-for-labs)
-* [Lab 2 - Stream data using NiFi](#stream-data-using-nifi)
-* [Lab 3 - Explore Kafka](#explore-kafka)
-* [Lab 4 - Spark Streaming w/ Python](#stream-with-spark)
-* [Lab 4 - Explore Kudu, Impala](#explore-kudu-impala)
-* [Lab 5 - Stream enhanced data into Kudu](#stream-enhanced-data-into-kudu)
-* [Lab 6 - Create live dashboard with Hue](#create-live-dashboard-with-hue)
+	* [Add an alias to your host file](#add-an-alias-to-your-host-file)
+	* [SSH to the sandbox](#ssh-to-the-sandbox)
+	* [Accessing Cloudera Manager](#accessing-cloudera-manager)
+* [Lab 2 - Preparing your instance for labs](#preparing-your-instance-for-labs)
+* [Lab 3 - Stream data using NiFi](#stream-data-using-nifi)
+	* [Run the Sentiment Analysis Model](#run-the-sentiment-analysis-model)
+	* [Build NiFi Flow](#build-nifi-flow) 
+* [Lab 4 - Conifgure and explore Kafka](#configure-and-explore-kafka)
+* [Lab 5 - Enhance Flow to identify sentiment on comments](#enhance-flow-to-identify-sentiment-on-comments)
+* [Publish Data to Kafka](#publish-data-to-kafka)
+* [Lab 6 - Configure Spark and Write to Kudu](#configure-spark-and-write-to-kudu)
+* [Use Impala to query Kudu](#use-impala-to-query-kudu)
+* [Lab 7 - Configure Hue](#configure-hue)
+* [Lab 8 - Build Dashboard in Hue](#build-dashboard-with-hue)
 
 
 ## Accessing the sandbox
@@ -81,7 +87,7 @@ On Windows use [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest
 
 ![Image of Putty ssh](./images/login_with_putty_2.png)
 
-### Accessing Cloudera Manager for the first time and starting up all services. 
+### Accessing Cloudera Manager
 
 The following services are going to be installed, but initially only Cloudera Manager would be accessible as by default all services would be in shutdown state. 
 
@@ -120,7 +126,7 @@ This script would download/setup all the above required dependencies and will al
 
 ## Stream data using NiFi
 
-### Run the sentiment analysis model as a REST-like service
+### Run the sentiment analysis model
 
 For the purpose of this exercise we are not going to train, test and implement a classification model but re-use an existing sentiment analysis model, provided by the Stanford University as part of their 
 
@@ -156,7 +162,7 @@ The model will classify the given text into 5 categories:
 
 In order to have a streaming source available for our workshop, we are going to make use of the publicly available Meetup.com API and connect to their WebSocket.
 
-The API documentation is available [here](https://www.meetup.com/meetup_api/docs/stream/2/event_comments/#websockets): https://www.meetup.com/meetup_api/docs/stream/2/event_comments/#websockets
+The API documentation is available [here](https://www.meetup.com/meetup_api/docs/stream/2/event_comments/#websockets).
 
 In this scenario we are going to stream all comments, for all topics, into NiFi and classify each one of them into the 5 categories listed above. 
 
@@ -201,7 +207,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	![Nifi Registry](./images/cdf_nifi_registry_f.jpg)
 	
 	- If everything is setup correctly, your bucket created earlier should get autoselected (being the only bucket).
-	- Provide a name for the Flow - 'CDF Workshop' for example. 
+	- Provide a name for the Flow - ```CDF Workshop``` for example. 
 	- You can also provide a description for your flow. 
 	- Click Save.
 	
@@ -218,7 +224,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
  	 ![ConnectWebSocket Configuration](./images/cdf_websocket_a.jpg)
  	 
  	 - Got to properties tab and select or create **JettyWebSocketClient** as the WebSocket Client Controller Service
- 	 - Go to properties tab and give a value to **WebSocket Client Id** such as **demo** for example
+ 	 - Go to properties tab and give a value to **WebSocket Client Id** such as ```demo``` for example
  	 
  	 ![ConnectWebSocket Configuration](./images/cdf_websocket_b.jpg)  
  	 
@@ -261,10 +267,10 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	- On Settings tab, select both **failure** and **unmatached** relationships
 	- On properties tab, change **Destination** value to **flowfile-attribute**.
 	- Add the following properties:
-		- timestamp: $.mtime
-		- member: $.member.member_name
-		- country: $.group.country
-		- comment: $.comment
+		- timestamp: ```$.mtime```
+		- member: ```$.member.member_name```
+		- country: ```$.group.country```
+		- comment: ```$.comment```
 	- The message coming out of the processor would look like this:
 
 	```json
@@ -283,7 +289,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 - **Step 8: Add a PutFile processor to the canvas**
 	- Open the processor.
 	- On settings tab, select **all** relationships - Since this will be the last connector in this flow, we need to terminate all relationships. 
-	- Change **Directory** value to **/tmp/workshop**
+	- Change **Directory** value to ```/tmp/workshop```
 	- Link PutFile process with AttributesToCSV processor on **success** relationship.
 	- Apply Changes.
 
@@ -309,7 +315,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	![Link Processor](./images/cdf_flow1.jpg).
 	
 	- To review the actual files being written, ssh to your instance and navigate to the ```/tmp/workshop``` directory.
-	- You will see all the files being written here. You can select any one of them and issue a ```cat filename``` command to view the contents as well. 
+	- You will see all the files being written here. You can select any one of them and issue a ```cat <filename>``` command to view the contents as well. 
 	
 	![Link Processor](./images/cdf_flow1_a.jpg).
 	
@@ -356,6 +362,8 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Set **Replacement Value** with value: ```${comment:replaceAll('\\.', ';')}```. We want to make sure the entire comment is evaluated as one sentence instead of one evaluation per sentence within the same comment.
   - Set **Replacement Strategy** to **Always Replace**
   - Apply changes
+
+![Link Processor](./images/cdf_sentiment_processor.jpg)
   
 - **Step 3: Invoke the Sentiment engine through InvokeHTTP processor**
   - Add InvokeHTTP processor and link from ReplaceText on **success** relationship
@@ -365,6 +373,12 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - **Make sure you have used the encoded URL and that you have replaced 'yourpublicip' with your actual IP**
   - Set **Content-Type** to ```application/x-www-form-urlencoded```
   - Apply changes
+
+![Link Processor](./images/cdf_invokehttp.jpg)
+
+**Important: In case you experience issues with this processor (during execution), you may need to open the port 9999 in your security groups since you are accessing this service. Your AWS security group would look something like below:
+
+![Link Processor](./images/aws_security_group.jpg)
   
 - **Step 4: Add EvalueJsonPath processor to process sentiment**
   - Add EvaluateJsonPath to the canvas and link from InvokeHTTP on **Response** relationship
@@ -372,12 +386,16 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - On settings tab, check both **failure** and **unmatched** relationships
   - On properties tab
   - Change **Destination** value to **flowfile-attribute**
-  - Add on the property **sentiment** with value **$.sentences[0].sentiment**
+  - Add on the property **sentiment** with value ```$.sentences[0].sentiment```
   - Apply changes
+
+![Link Processor](./images/cdf_process_sentiment.jpg)
   
 - **Step 5: Format time [ISO format](https://en.wikipedia.org/wiki/ISO_8601) with UpdateAttribute processor (future use for time based analytics)**
   - Add UpdateAttribute processor and link from EvaluateJsonPath on **matched** relationship
   - Using handy [NiFi's language expression](https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html#dates), add a new attribue ```dateandtime``` with value: ```${timestamp:format("yyyy-MM-dd'T'HH:mm:ss'Z'", "Asia/Singapore")}``` to properties tab
+
+![Link Processor](./images/cdf_updateattribute.jpg)
 
 - **Step 6: Prepare attributes list that will be pushed to Kafka with AttributesToJSON processor**
   - Add AttributesToJSON Processor.
@@ -389,29 +407,42 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Change Destination to **flowfile-content**
   - Set Include Core Attributes to **false**
   - Apply changes
+
+![Link Processor](./images/cdf_attributestojson.jpg)
   
-- **Step 7: Push the data to Kafka with PublishKafka_2_0 connector**
-  - Add PublishKafka_2_0 to the canvas and link from AttributesToJSON on **success** relationship
+- **Step 7: Push the data to Kafka with PublishKafka_2 _0 connector**
+  - Add PublishKafka_2 _0 to the canvas and link from AttributesToJSON on **success** relationship
   - Double click on the processor
   - On settings tab, check all relationships as this is a the last step.
   - On properties tab
-  - Change **Kafka Brokers** value to **yourlocalip:9092** (make sure you select your local ip of the instance as kafka will be listening on that. If you are unsure of what is the local ip, you can execute the following:
+  - Change **Kafka Brokers** value to ```yourlocalip:9092``` (make sure you select your local ip of the instance as kafka will be listening on that. If you are unsure of what is the local ip, you can execute the following:
   
   		```$ ./show_env.sh```
   
-  - Change **Topic Name** value to **meetup_comment_ws**
+  - Change **Topic Name** value to ```meetup_comment_ws```
   - Change **Use Transactions** value to **false**
   - Apply changes.
+
+![Link Processor](./images/cdf_publish_kafka.jpg)
+ 
   - CDF Flow is now ready and should look like the following:
 
-## Configure Kudu & Impala
+![Link Processor](./images/cdf_last_step.jpg)
+
+## Configure Kudu and Impala
 
 We will now setup a Kudu table with the same schema that we are using in Step 6 above. The steps are as follows:
 
 - Connect to Hue. We will be using Hue as our query client to create and access table, with Impala. To connect to Hue, click the [Hue](demo.cloudera.com:8888) URL.
 - **Important: Since we would be accessing Hue for the first time, the first user to access it will become the Hue Admin**
+
+![Link Processor](./images/hue_first_time.jpg)
+
 - Let's use admin/admin as the userid/password for Hue.
 - Before you create the tables, confirm that Kudu service is running (using Cloudera Manager)
+
+![Link Processor](./images/hue_impala.jpg)
+
 - Execute the following query in the Impala query console
 
 		CREATE TABLE meetup_comment_sentiment
@@ -430,6 +461,8 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 - Click the blue 'Play' button on the left. You will get a confirmation that the table has been created. 
 
+![Link Processor](./images/kudu_table.jpg)
+
 ## Publish Data to Kafka
 
 - Before we start pushing the data into Kafka, let's start the Kafka Consumer to see what is coming through CDF (live).
@@ -437,19 +470,23 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 		$./kafka_console.sh meetup_comment_ws
 
-Kafka will start and your screen will show something similar to below:
+- Kafka will start and your screen will show something similar to below:
 
+![Link Processor](./images/start_kafka.jpg)
 
-Let's start our CDF flow by clicking the Play button on the CDF Workshop group. 
+- Let's start our CDF flow by clicking the Play button on the CDF Workshop group. 
 
-You will see the Nifi Flow working:
+- You will see the Nifi Flow working. You will see the messages going in and you will be able to see it change if you right click and refresh. 
 
-And messaged would start showing up in the Kafka Console Window:
+![Link Processor](./images/cdf_full_flow.jpg)
 
+- And messaged would start showing up in the Kafka Console Window:
 
-You can either keep both Kafka and CDF Flow running till you have 50-100 messages and then stop the CDF Flow by click the 'Stop' button on the 'CDF Workshop' Processor Group.
+![Link Processor](./images/kafka_consumer.jpg)
 
-## Configure Spark
+- You can either keep both Kafka and CDF Flow running till you have 50-100 messages and then stop the CDF Flow by click the 'Stop' button on the 'CDF Workshop' Processor Group.
+
+## Configure Spark and Write to Kudu
 
 - We will be using Spark to execute the following script which will 
 	- Read data from Kakfa Topic
@@ -464,36 +501,89 @@ You can either keep both Kafka and CDF Flow running till you have 50-100 message
 		
 - The pySpark code is available in the scripts directory [here](./scripts/spark_kudu.py)
 
+- On execution, the spark job will start and the data will start showing up in Kudu. 
+
+![Link Processor](./images/spark_job.jpg)
+
+- We will check the data being written by Spark by using Hue, in the next segment.
+
+## Use Impala to query Kudu
+
+- With the spark job running, let's validate that data is being written to our Kudu table. 
+- Access Hue and navigate to the Impala Query. 
+- Execute the following query: 
+
+		select count(*) from meetup_comment_sentiment;
+		
+- If you execute this query a few times, you would be able to see records getting populated into your table. 
+
+![Link Processor](./images/impala_query_a.jpg)
+
+- Let's also check the values of columns. For this, we advise that you use a ```limit``` parameter, if executing a ```select *``` statement, as follows:
+
+		select * from meetup_comment_sentiment limit 10;
+
+![Link Processor](./images/impala_query_b.jpg)
+
+- We can see that data is coming in all the columns that we had setup. 
 
 ## Configure Hue
 
-The last thing that remains is to Build a Dashboard on the data that we have ingested. There is a small configuration that we need to do for enabling the inbuilt dashboard capability that Hue has. By default this is disabled, as this is typically leveraged with Solr. 
+- The last thing that remains is to Build a Dashboard on the data that we have ingested. There is a small configuration that we need to do for enabling the inbuilt dashboard capability that Hue has. By default this is disabled, as this is typically leveraged with Solr. 
 
-To enable this functionality, open Cloudera Manager. Click Hue.
+- To enable this functionality, open Cloudera Manager. Click Hue.
 
-Then on the Hue screen, select 'Configuration' tab. 
+- Then on the Hue screen, select 'Configuration' tab. On the configuration tab, search for the property Hue Safety Valve under Hue Service → Configuration → Service-Wide → Advanced → Hue Service Advanced Configuration Snippet (Safety Valve) for hue_safety_valve.ini
 
-http://gethue.com/how-to-configure-hue-in-your-hadoop-cluster/
+![Link Processor](./images/hue_setup_a.jpg)
 
-	[dashboard]
-	  ## Activate the Dashboard link in the menu.
-	  is_enabled=true 
-	  has_sql_enabled=true
-	
-	  [[engines]]
-	
-	    [[[solr]]]
-	    ##  Requires Solr 6+
-	     analytics=true
-	     nesting=true
-	
-	    [[[sql]]]
-	      analytics=true
-	      nesting=true
+- Copy and paste the following in the text box:
+
+		[dashboard]
+		  ## Activate the Dashboard link in the menu.
+		  is_enabled=true 
+		  has_sql_enabled=true
+		
+		  [[engines]]
+		
+		    [[[solr]]]
+		    ##  Requires Solr 6+
+		     analytics=true
+		     nesting=true
+		
+		    [[[sql]]]
+		      analytics=true
+		      nesting=true
+
+- Restart Hue for these settings to be applied. 
+
+![Link Processor](./images/hue_setup_b.jpg)
+
+- Post restart, you would be able to see the Dashboard option in Hue. 
+
+![Link Processor](./images/hue_dashboard_icon.jpg)
+
+Additional details on this are available [here](http://gethue.com/how-to-configure-hue-in-your-hadoop-cluster/)
 
 ## Build Dashboard in Hue
 
-Once Hue has been restarted, you will be able to access the Dashboard feature:
+- You can now access the Dashboard feature to create charts and widgets using a drag and drop approach. 
+
+![Link Processor](./images/hue_dashboard.jpg)
+
+- Drag and Drop 'sentiment' into the Empty Widget
+
+![Link Processor](./images/hue_dashboard_drag.jpg)
+
+- This will automatically create a chart for you. This can further be enhanced with additional metrics, calculations and filters. 
+
+![Link Processor](./images/hue_dashboard_chart.jpg)
+
+- Drag an additional column 'country' into another area of the chart.
+
+![Link Processor](./images/hue_dashboard_chart_b.jpg)
+
+This concludes our lab. Hope you have built a better understanding of CDF and CDH through this lab and how different components work together to address a business use case. 
 
 
 
