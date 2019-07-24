@@ -126,7 +126,7 @@ There are a few configuration files and scripts that need to be downloaded in yo
 
 The above setup has been provided in a script that you can download from here by issueing the following command in terminal/putty:
 
-	$ wget xx.xx.xx.xx/config_lab.sh
+	$ wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDF-Workshop/master/scripts/config_lab.sh
 	$ chmod +x config_lab.sh
 	$ ./config_lab.sh
 
