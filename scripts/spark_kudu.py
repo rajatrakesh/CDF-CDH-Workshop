@@ -8,11 +8,12 @@ from pyspark.sql import SQLContext
 from uuid import uuid1
 from pyspark.sql.types import *
 
-schema = StructType([StructField("__time", StringType(), True),
-                      StructField("event", StringType(), True),
+schema = StructType([StructField("dateandtime", StringType(), True),
+                     StructField("country", StringType(), True),
+                     StructField("event", StringType(), True),
                      StructField("member", StringType(), True),
-                     StructField("msgcomment", StringType(), True),
-                     StructField("sentiment", StringType(), True)])
+                     StructField("sentiment", StringType(), True),
+                     StructField("msgcomment", StringType(), True)])
 
 zk_broker = "YourHostName:2181"
 kafka_topic = "meetup_comment_ws"
@@ -28,7 +29,7 @@ def getSqlContextInstance(sparkContext):
 def splitJson(time,rdd):
     sqc = getSqlContextInstance(rdd.context)
     kudu_df = sqc.createDataFrame(rdd,schema)
-    kudu_df.show()
+
     kudu_df.write.format('org.apache.kudu.spark.kudu') \
                  .option('kudu.master',kudu_master) \
                  .option('kudu.table',kudu_table) \
@@ -38,15 +39,16 @@ def splitJson(time,rdd):
 if __name__ == '__main__':
     sc = SparkContext(appName="SparkStreaming_IoT")
     ssc = StreamingContext(sc, 5) # 5 second window
-    kvs = KafkaUtils.createStream(ssc, zk_broker, "meetup_comment_ws2", {kafka_topic:1})
+    kvs = KafkaUtils.createStream(ssc, zk_broker, "meetup_comment_ws", {kafka_topic:1})
 
     kafka_stream = kvs.map(lambda x: x[1]) \
                            .map(lambda l: json.loads(l)) \
-                           .map(lambda p: (p['__time'],
-                                           p['sentiment'],
+                           .map(lambda p: (p['dateandtime'],
+                                           p['country'],
                                            p['event'],
-                                           p['comment'],
-                                           p['member']))
+                                           p['member'],
+                                           p['sentiment'],
+                                           p['comment']))
 
 
     kafka_stream.foreachRDD(splitJson)

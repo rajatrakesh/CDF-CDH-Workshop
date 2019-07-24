@@ -2,6 +2,21 @@
 
 --
 
+### Objective
+
+The objective of this lab is to provide hands-on experience on NiFi, Kafka, Spark, Python, Kudu, Impala and Hue through a single use case that brings all these components together in a single use-case. 
+
+For the purpose of this lab, we would build an end-to-end use case that will:
+
+* *Ingest data sets from Meetup.com for a specific event through NiFi*
+* *Parse the dataset and extract key terms, build a sentiment score with StanFord CoreNLP engine*
+* *Configure NiFi with NiFi registry for Version Control*
+* *Setup Kafka Topics to ingest data from NiFi*
+* *Setup Kudu Tables to store the social data*
+* *Leverage Spark, Python to read the data from Kafka and store it in Kudu*
+* *Use Impala to run queries on Kudu*
+* *Build a dashboard in Hue for better visualization of this dataset*
+
 ### Pre-requisites
 
 You would require an environment where the following are installed and configured:
@@ -9,17 +24,13 @@ You would require an environment where the following are installed and configure
 * Cloudera CDH (Impala, Kudu, Hue)
 * Cloudera Data Flow (Nifi, Registry)
 
-We provide instructions to deploy a single node CDH cluster with all the above pre-requisites configured and installed [Github Repo](https://github.com/rajatrakesh/OneNodeCDHCluster)
+We provide instructions to deploy a single node CDH cluster with all the above pre-requisites configured and installed [Github Repo](https://github.com/fabiog1901/OneNodeCDHCluster)
 
 Using this repo, you can bring up a CDH cluster (also includes CDSW deployment instructions as well). Alternatively, you can also deploy it as an instance on AWS using a public AMI available (for Cloudera Workshops ONLY). 
 
 To prepare the environment:
 
-* Deploy the OneNodeCluster using [Github Repo](https://github.com/rajatrakesh/OneNodeCDHCluster). This is an extension of the fantastic work done by my colleague **Fabio**. His original repo is available [here](https://github.com/fabiog1901/OneNodeCDHCluster) 
-
-OR 
-
-* Launch the AWS AMI **TBD** with **TBD** instance type.
+* Deploy the OneNodeCluster using [Github Repo](https://github.com/fabiog1901/OneNodeCDHCluster). This OneNodeCluster Github repo was built by my colleague **Fabio**, who put in a lot of effort to have a single CDSW+CDH+CDF instance that can be leveraged for end-to-end demos and labs.  
 
 --
 
@@ -34,8 +45,6 @@ OR
 * [Lab 5 - Stream enhanced data into Kudu](#stream-enhanced-data-into-kudu)
 * [Lab 6 - Create live dashboard with Hue](#create-live-dashboard-with-hue)
 
-### Section 2
-* [Lab 1 - Collect syslog data using MiNiFi and EFM](#collect-syslog-data-using-minifi-and-efm)
 
 ## Accessing the sandbox
 
@@ -82,9 +91,9 @@ There are a few configuration files and scripts that need to be downloaded in yo
 
 The above setup as well as a few others have been provided in scripts that you can download from here by issueing the following command in terminal/putty:
 
-```$ wget xx.xx.xx.xx/config_lab.sh```
-```$ chmod +x config_lab.sh```
-```$ ./config_lab.sh```
+	$ wget xx.xx.xx.xx/config_lab.sh
+	$ chmod +x config_lab.sh
+	$ ./config_lab.sh
 
 This script would download/setup all the above required dependencies and will also download a bunch of housekeeping scripts that we would use during the labs. These would be available in the home folder as well. (/home/centos)
 
@@ -98,14 +107,14 @@ The Stanford NLP Engine would be setup in the directory ```/home/centos/stanford
 
 To start the NLP Engine Server, execute the following script:
 
-```$ ./1_start_nlp.sh```
+	$ ./1_start_nlp.sh
 
 **Referene**: This starts the server by executing the following command:
 
-```bash
-cd /path/to/stanford-corenlp-full-2018-10-05
-java -mx1g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9999 -timeout 15000 </dev/null &>/dev/null &
-```
+
+	cd /path/to/stanford-corenlp-full-2018-10-05
+	java -mx1g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9999 -timeout 15000 </dev/null &>/dev/null &
+
 
 Details on the corenlp server are available here [web service](https://stanfordnlp.github.io/CoreNLP/corenlp-server.html)
 
@@ -125,7 +134,7 @@ The model will classify the given text into 5 categories:
 
 ### Build NiFi flow
 
-In order to have a streaming source available for our workshop, we are going to make use of the publicly available Meetup's API and connect to their WebSocket.
+In order to have a streaming source available for our workshop, we are going to make use of the publicly available Meetup.com API and connect to their WebSocket.
 
 The API documentation is available [here](https://www.meetup.com/meetup_api/docs/stream/2/event_comments/#websockets): https://www.meetup.com/meetup_api/docs/stream/2/event_comments/#websockets
 
@@ -142,63 +151,90 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	- Click Add.
 	- Double click the Processor Group and it will show up a blank canvas (inside the group).
 
-![Add Processor Group](./images/cdf_01.jpg)
+	![Add Processor Group](./images/cdf_01.jpg)
 
 - **Step 2: Enabling Nifi Registry**
 	- Open the [Nifi Registry portal](http://demo.cloudera.com:18080/nifi-registry)
-	- ![Nifi Registry](./images/cdf_nifi_registry_a.jpg)
+	
+	![Nifi Registry](./images/cdf_nifi_registry_a.jpg)
+	
 	- Let's add a bucket. Click the wrench icon in the right corner to open up the Bucket screen.
 	- Let's create a new bucket and call it ```workshop```.
-	- ![Nifi Registry](./images/cdf_nifi_registry_b.jpg)
-	- We would need to connect Nifi with Nifi Registry. 
-	- Click the three hortizontal bar icon in the right top corner. Then click 'Controller Settigs'
-	- ![Nifi Registry](./images/cdf_nifi_registry_c.jpg)
-	- Let's create a new registration for the client. **Note** For this option to work, you would need to open the port 18080, to not just your public IP (computer), but also the public IP of your instance. 
-	- ![Nifi Registry](./images/cdf_nifi_registry_d.jpg)
+	
+	![Nifi Registry](./images/cdf_nifi_registry_b.jpg)
+
+	- We need to connect Nifi with Nifi Registry. Click the three hortizontal bar icon in the right top corner. Then click 'Controller Settigs'
+	
+	![Nifi Registry](./images/cdf_nifi_registry_c.jpg)
+	
+	- Let's create a new registration for the client. **Note For this option to work, you would need to open the port 18080, to not just your public IP (computer), but also the public IP of your instance.**
+
+	![Nifi Registry](./images/cdf_nifi_registry_d.jpg)
+	
 	- Add the url of Nifi Registry and click update.
-	- ![Nifi Registry](./images/cdf_nifi_registry_e.jpg)
+	
+	![Nifi Registry](./images/cdf_nifi_registry_e.jpg)
+	
 	- Right click anywhere on the Nifi canvas and select 'Refresh' in the menu.
 	- Right click again and this time select 'Version' -> 'Start Version Control'.
-	- ![Nifi Registry](./images/cdf_nifi_registry_f.jpg)
+	
+	![Nifi Registry](./images/cdf_nifi_registry_f.jpg)
+	
 	- If everything is setup correctly, your bucket created earlier should get autoselected (being the only bucket).
 	- Provide a name for the Flow - 'CDF Workshop' for example. 
 	- You can also provide a description for your flow. 
 	- Click Save.
-	- ![Nifi Registry](./images/cdf_nifi_registry_g.jpg)
+	
+	![Nifi Registry](./images/cdf_nifi_registry_g.jpg)
+	
 	- A green tick will appear on your Processor Group indicating that your flow now has versipon control enabled. 
-	- ![Nifi Registry](./images/cdf_nifi_registry_h.jpg)
+	
+	![Nifi Registry](./images/cdf_nifi_registry_h.jpg)
 
 - **Step 3: Add a ConnectWebSocket processor to the canvas**
  	 - Double click on the processor
  	 - On settings tab, check all relationships except **text message**, as we want only a text message to go forward to subsequent flow. 
- 	 - ![ConnectWebSocket Configuration](./images/cdf_websocket_a.jpg)
+ 	 
+ 	 ![ConnectWebSocket Configuration](./images/cdf_websocket_a.jpg)
+ 	 
  	 - Got to properties tab and select or create **JettyWebSocketClient** as the WebSocket Client Controller Service
  	 - Go to properties tab and give a value to **WebSocket Client Id** such as **demo** for example
- 	 -![ConnectWebSocket Configuration](./images/cdf_websocket_b.jpg)  
+ 	 
+ 	 ![ConnectWebSocket Configuration](./images/cdf_websocket_b.jpg)  
+ 	 
  	 - Then configure the service (click on the arrow on the right)
  	 - Go to properties tab and add this value: ```ws://stream.meetup.com/2/event_comments``` to property **WebSocket URI**
  	 - Apply the change
  	 - Enable the controller service (click on the thunder icon) and close the window
  	 - Apply changes
- 	 -![ConnectWebSocket Configuration](./images/cdf_websocket_c.jpg) 
+ 	 
+ 	 ![ConnectWebSocket Configuration](./images/cdf_websocket_c.jpg) 
  	 
 - **Step 4: Add an UpdateAttribute connector to the canvas**
 	- Double click to open the processor. 
 	- On properties tab add new property mime.type clicking on + icon and give the value ```application/json```. This will tell the next processor that the messages sent by the Meetup WebSocket is in JSON format.
-	- Add another property ```event``` and give it a value ```CDF workshop for the purpose of this exercise.
+	- Add another property ```event``` and give it a value ```CDF workshop``` for the purpose of this exercise.
 	- Apply changes.
-	- ![UpdateAttribute Configuration](./images/cdf_updateattribute_a.jpg)
+	
+	![UpdateAttribute Configuration](./images/cdf_updateattribute_a.jpg)
 
 - **Step 5: Link ConnectWebSocket with UpdataAttribute processor**
 	- Hover the mouse on the **ConnectWebSocket** processor and a link icon will appear
-	- ![Link Processor](./images/cdf_websocket_d.jpg) 
+	
+	![Link Processor](./images/cdf_websocket_d.jpg) 
+	
 	- Drag and link this to the **UpdateAttribute** processor (green link will appear)
-	- ![Link Processor](./images/cdf_websocket_e.jpg)
+	
+	![Link Processor](./images/cdf_websocket_e.jpg)
+	
 	- A property box will open up. 
 	- Select only **text message**
-	- ![Link Processor](./images/cdf_websocket_f.jpg)
+	
+	![Link Processor](./images/cdf_websocket_f.jpg)
+	
 	- The two processors are now linked
-	- ![Link Processor](./images/cdf_websocket_g.jpg)
+	
+	![Link Processor](./images/cdf_websocket_g.jpg)
 
 - **Step 6: Add EvaluateJsonPath processor to the canvas**
 	- Double click the processor.
@@ -234,22 +270,32 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 - **Step 9: Commit your first Flow**
 	- Right click anywhere on the canvas.
 	- Click 'Version' -> 'Commit Local Changes'.
-	- ![Link Processor](./images/cdf_nifi_registry_i.jpg).
+	
+	![Link Processor](./images/cdf_nifi_registry_i.jpg).
+	
 	- Provide commentary for your Version.
-	- ![Link Processor](./images/cdf_nifi_registry_j.jpg).
+	
+	![Link Processor](./images/cdf_nifi_registry_j.jpg).
+	
 	- Now goto Nifi Registry and you would be able to see the version information show up here as well. 
-	- ![Link Processor](./images/cdf_nifi_registry_k.jpg).
+	
+	![Link Processor](./images/cdf_nifi_registry_k.jpg).
 
 - **Step 10: Start your First Flow**
 	- Click the Play icon on the 'CDF Workshop' Processor Group to start the entire flow. 
 	- All the processors will now show a green play icon, as the processor start to execute. 
 	- You will see flow-files starting to move and you can gradually see how the data is being read from meetup.com
-	- ![Link Processor](./images/cdf_flow1.jpg).
+	
+	![Link Processor](./images/cdf_flow1.jpg).
+	
 	- To review the actual files being written, ssh to your instance and navigate to the ```/tmp/workshop``` directory.
 	- You will see all the files being written here. You can select any one of them and issue a ```cat filename``` command to view the contents as well. 
-	- ![Link Processor](./images/cdf_flow1_a.jpg).
+	
+	![Link Processor](./images/cdf_flow1_a.jpg).
+	
 	- Once done, stop the flow and delete the files created by this flow by typing:
-	- ```sudo rm -rf /tmp/workshop/*```
+		
+		```sudo rm -rf /tmp/workshop/*```
 
 
 ## Configure and Explore Kafka
@@ -258,15 +304,180 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	- SSH to your instance. 
 	- Normally, you would need to identify where kafka is installed and then execute a bunch of command line statements to create & list topics. There is a seperate utility for tracking what content is being written in Kafka. For this lab, we have parameterized these statements and provided them via scripts, making it easy to setup the lab.
 	- **Note You can execute the set_env.sh script at the command line to populate the kafka_dir,localip & publicip variables at anytime. This is typically used, if you lose connectivity and need to run commands again.**
-	- ```$ ./set_env.sh```
+	
+		```$ ./set_env.sh```
+	
 	- List Kafka Topics by executing the following:
-	- ```$ ./list_kafka_topics.sh```
+	
+		```$ ./list_kafka_topics.sh```
+		
 	- By default, your environment will not have any existing Kafka topics setup, hence no topics will be displayed. 
 	- Let's create a Kafka Topic ```meetup_comment_ws``` by executing the following:
-	- ```$ ./2_create_kafka_topic.sh meetup_comment_ws```
+	
+		```$ ./2_create_kafka_topic.sh meetup_comment_ws```
+		
 	- Let's check if the topic has been created by executing:
-	- ```$ ./list_kafka_topics.sh```
-	- ![Kafka Topic Setup](./images/cdf_kafka_a.jpg).
+	
+		```$ ./list_kafka_topics.sh```
+	
+	![Kafka Topic Setup](./images/cdf_kafka_a.jpg).
+
+## Enhance Flow to identify sentiment on comments
+
+Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps below:
+
+- **Step 1: Remove EvaluateJson and AttributesToCSV processorsw**
+  - Right click on the relationship between EvaluateJsonPath and AttibutesToCSV processors and delete
+  - Delete the AttibutesToCSV processor
+  - Do the same for the PutFile processor
+  
+- **Step 2: Parse content through the sentiment engine to derive sentiment**
+  - Add ReplaceText processor and link from EvaluateJSonPath on **matched** relationship
+  - Double click on processor and check **failure** on settings tab
+  - Go to properties tab and remove value for **Search Value** and set it to empty string
+  - Set **Replacement Value** with value: ```${comment:replaceAll('\\.', ';')}```. We want to make sure the entire comment is evaluated as one sentence instead of one evaluation per sentence within the same comment.
+  - Set **Replacement Strategy** to **Always Replace**
+  - Apply changes
+  
+- **Step 3: Invoke the Sentiment engine through InvokeHTTP processor**
+  - Add InvokeHTTP processor and link from ReplaceText on **success** relationship
+  - Double click on processor and check all relationships except **Response** on settings tab
+  - Go to properties tab and set value for **HTTP Method** to **POST**
+  - Set **Remote URL** with value: ```http://yourpublicip:9999/?properties=%7B%22annotators%22%3A%22sentiment%22%2C%22outputFormat%22%3A%22json%22%7D``` which is the url encoded value for ```http://yourpublicip:9999/?properties={"annotators":"sentiment","outputFormat":"json"}```
+  - **Make sure you have used the encoded URL and that you have replaced 'yourpublicip' with your actual IP**
+  - Set **Content-Type** to ```application/x-www-form-urlencoded```
+  - Apply changes
+  
+- **Step 4: Add EvalueJsonPath processor to process sentiment**
+  - Add EvaluateJsonPath to the canvas and link from InvokeHTTP on **Response** relationship
+  - Double click on the processor
+  - On settings tab, check both **failure** and **unmatched** relationships
+  - On properties tab
+  - Change **Destination** value to **flowfile-attribute**
+  - Add on the property **sentiment** with value **$.sentences[0].sentiment**
+  - Apply changes
+  
+- **Step 5: Format time [ISO format](https://en.wikipedia.org/wiki/ISO_8601) with UpdateAttribute processor (future use for time based analytics)**
+  - Add UpdateAttribute processor and link from EvaluateJsonPath on **matched** relationship
+  - Using handy [NiFi's language expression](https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html#dates), add a new attribue ```dateandtime``` with value: ```${timestamp:format("yyyy-MM-dd'T'HH:mm:ss'Z'", "Asia/Singapore")}``` to properties tab
+
+- **Step 6: Prepare attributes list that will be pushed to Kafka with AttributesToJSON processor **
+  - Add AttributesToJSON Processor.
+  - Link with UpdateAttribute on **success**.
+  - Double click on processor
+  - On settings tab, check **failure** relationship
+  - Go to properties tab
+  - In the Attributes List value set ```dateandtime, country, event, member, sentiment, comment```. We will match this structure later in the table that we will create in Kudu.
+  - Change Destination to **flowfile-content**
+  - Set Include Core Attributes to **false**
+  - Apply changes
+  
+- **Step 7: Push the data to Kafka with PublishKafka_2_0 connector 
+  - Add PublishKafka_2_0 to the canvas and link from AttributesToJSON on **success** relationship
+  - Double click on the processor
+  - On settings tab, check all relationships as this is a the last step.
+  - On properties tab
+  - Change **Kafka Brokers** value to **yourlocalip:9092** (make sure you select your local ip of the instance as kafka will be listening on that. If you are unsure of what is the local ip, you can execute the following:
+  
+  		```$ ./set_env.sh```
+  		
+  		```$ echo $localip```
+  
+  - Change **Topic Name** value to **meetup_comment_ws**
+  - Change **Use Transactions** value to **false**
+  - Apply changes.
+  - CDF Flow is now ready and should look like the following:
+
+## Configure Kudu & Impala
+
+We will now setup a Kudu table with the same schema that we are using in Step 6 above. The steps are as follows:
+
+- Connect to Hue. We will be using Hue as our query client to create and access table, with Impala. To connect to Hue, click the [Hue](demo.cloudera.com:8888) URL.
+- **Important: Since we would be accessing Hue for the first time, the first user to access it will become the Hue Admin**
+- Let's use admin/admin as the userid/password for Hue.
+- Before you create the tables, confirm that Kudu service is running (using Cloudera Manager)
+- Execute the following query in the Impala query console
+
+		CREATE TABLE meetup_comment_sentiment
+		(
+		dateandtime string,
+		country string,
+		event string,
+		member string,
+		sentiment string,
+		msgcomment string,
+		 PRIMARY KEY (dateandtime)
+		)
+		PARTITION BY HASH PARTITIONS 10
+		STORED AS KUDU
+		TBLPROPERTIES ('kudu.num_tablet_replicas' = '1');
+
+- Click the blue 'Play' button on the left. You will get a confirmation that the table has been created. 
+
+## Publish Data to Kafka
+
+- Before we start pushing the data into Kafka, let's start the Kafka Consumer to see what is coming through CDF (live).
+- To start Kafka Consumer, execute the following script in terminal:
+
+		$./kafka_console.sh meetup_comment_ws
+
+Kafka will start and your screen will show something similar to below:
+
+
+Let's start our CDF flow by clicking the Play button on the CDF Workshop group. 
+
+You will see the Nifi Flow working:
+
+And messaged would start showing up in the Kafka Console Window:
+
+
+You can either keep both Kafka and CDF Flow running till you have 50-100 messages and then stop the CDF Flow by click the 'Stop' button on the 'CDF Workshop' Processor Group.
+
+## Configure Spark
+
+- We will be using Spark to execute the following script which will 
+	- Read data from Kakfa Topic
+	- Write this data to Kudu Table we created
+- To execute the Spark process, type the following:
+
+spark-submit --master local[2] --jars kudu-spark2_2.11-1.9.0.jar,spark-core_2.11-1.5.2.logging.jar --packages org.apache.spark:spark-streaming-kafka_2.11:1.6.3 spark_kudu.py
+
+
+## Configure Hue
+
+The last thing that remains is to Build a Dashboard on the data that we have ingested. There is a small configuration that we need to do for enabling the inbuilt dashboard capability that Hue has. By default this is disabled, as this is typically leveraged with Solr. 
+
+To enable this functionality, open Cloudera Manager. Click Hue.
+
+Then on the Hue screen, select 'Configuration' tab. 
+
+http://gethue.com/how-to-configure-hue-in-your-hadoop-cluster/
+
+	[dashboard]
+	  ## Activate the Dashboard link in the menu.
+	  is_enabled=true 
+	  has_sql_enabled=true
+	
+	  [[engines]]
+	
+	    [[[solr]]]
+	    ##  Requires Solr 6+
+	     analytics=true
+	     nesting=true
+	
+	    [[[sql]]]
+	      analytics=true
+	      nesting=true
+
+## Build Dashboard in Hue
+
+Once Hue has been restarted, you will be able to access the Dashboard feature:
+
+
+
+
+
+
 
 
 	
