@@ -87,6 +87,10 @@ On Windows use [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest
 
 ![Image of Putty ssh](./images/putty2.jpg)
 
+[Back to Index](#content)
+
+--
+
 ### Accessing Cloudera Manager
 
 The following services are going to be installed, but initially only Cloudera Manager would be accessible as by default all services would be in shutdown state. 
@@ -104,6 +108,10 @@ Login to [Cloudera Manager](http://demo.cloudera.com:7180) with username/passwor
 **After a successful startup, all services would be showing a green tick.**
 
 ![Cloudera Manager](./images/cm_01.jpg)
+
+[Back to Index](#content)
+
+--
 
 ## Preparing your instance for labs
 
@@ -123,6 +131,10 @@ The above setup has been provided in a script that you can download from here by
 	$ ./config_lab.sh
 
 This script would download/setup all the above required dependencies and will also download a bunch of housekeeping scripts that we would use during the labs. These would be available in the home folder as well. (/home/centos)
+
+[Back to Index](#content)
+
+--
 
 ## Stream data using NiFi
 
@@ -157,6 +169,10 @@ The model will classify the given text into 5 categories:
 - neutral
 - positive
 - very positive
+
+[Back to Index](#content)
+
+--
 
 ### Build NiFi flow
 
@@ -323,7 +339,9 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 		
 		```sudo rm -rf /tmp/workshop/*```
 
+[Back to Index](#content)
 
+--
 ## Configure and Explore Kafka
 
 - **Setup Kafka Topic**
@@ -345,6 +363,10 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 		```$ ./list_kafka_topics.sh```
 	
 	![Kafka Topic Setup](./images/cdf_kafka_a.jpg).
+	
+[Back to Index](#content)
+
+--
 
 ## Enhance Flow to identify sentiment on comments
 
@@ -429,6 +451,10 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
 
 ![Link Processor](./images/cdf_last_step.jpg)
 
+[Back to Index](#content)
+
+--
+
 ## Configure Kudu and Impala
 
 We will now setup a Kudu table with the same schema that we are using in Step 6 above. The steps are as follows:
@@ -463,6 +489,9 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 ![Link Processor](./images/kudu_table.jpg)
 
+[Back to Index](#content)
+
+--
 ## Publish Data to Kafka
 
 - Before we start pushing the data into Kafka, let's start the Kafka Consumer to see what is coming through CDF (live).
@@ -486,6 +515,10 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 - You can either keep both Kafka and CDF Flow running till you have 50-100 messages and then stop the CDF Flow by click the 'Stop' button on the 'CDF Workshop' Processor Group.
 
+[Back to Index](#content)
+
+--
+
 ## Configure Spark and Write to Kudu
 
 - We will be using Spark to execute the following script which will 
@@ -507,6 +540,10 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 - We will check the data being written by Spark by using Hue, in the next segment.
 
+[Back to Index](#content)
+
+--
+
 ## Use Impala to query Kudu
 
 - With the spark job running, let's validate that data is being written to our Kudu table. 
@@ -526,6 +563,10 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 ![Link Processor](./images/impala_query_b.jpg)
 
 - We can see that data is coming in all the columns that we had setup. 
+
+[Back to Index](#content)
+
+--
 
 ## Configure Hue
 
@@ -565,6 +606,10 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 Additional details on this are available [here](http://gethue.com/how-to-configure-hue-in-your-hadoop-cluster/)
 
+[Back to Index](#content)
+
+--
+
 ## Build Dashboard in Hue
 
 - You can now access the Dashboard feature to create charts and widgets using a drag and drop approach. 
@@ -585,7 +630,9 @@ Additional details on this are available [here](http://gethue.com/how-to-configu
 
 This concludes our lab. Hope you have built a better understanding of CDF and CDH through this lab and how different components work together to address a business use case. 
 
+[Back to Index](#content)
 
+--
 
 
 
