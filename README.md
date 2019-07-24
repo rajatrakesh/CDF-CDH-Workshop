@@ -69,7 +69,7 @@ Replacing the ip (xx.xx.xx.xx) address with the one provided by Cloudera during 
 
 ### SSH to the sandbox
 
-You would need to download the pem file, to be able to ssh to your instance. The .pem file is available [here](https://rajat-cloudera-bigdatalab.s3-ap-southeast-1.amazonaws.com/sg-cdf-cdp-cdsw-workshop.pem) and the ppk is [here]()
+You would need to download the pem file, to be able to ssh to your instance. The .pem file (Mac) is available [here](https://rajat-cloudera-bigdatalab.s3-ap-southeast-1.amazonaws.com/sg-cdf-cdp-cdsw-workshop.pem) and the ppk (Windows) is [here](https://rajat-cloudera-bigdatalab.s3-ap-southeast-1.amazonaws.com/sg-cdf-cdp-cdsw-workshop.ppk)
 
 If you are using mac, then open terminal and navigate to the directory where you have downloaded this file and execute the following:
 
@@ -83,9 +83,9 @@ On Mac use the terminal to SSH
 
 On Windows use [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 
-![Image of Putty ssh](./images/login_with_putty_1.png)
+![Image of Putty ssh](./images/putty1.jpg)
 
-![Image of Putty ssh](./images/login_with_putty_2.png)
+![Image of Putty ssh](./images/putty2.jpg)
 
 ### Accessing Cloudera Manager
 
