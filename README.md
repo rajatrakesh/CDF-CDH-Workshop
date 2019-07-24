@@ -37,7 +37,7 @@ To prepare the environment:
 ## Content
 
 * [Lab 1 - Accessing the sandbox](#accessing-the-sandbox)
-	* [Add an alias to your host file](#add-an-alias-to-your-host-file)
+	* [Add an alias to your host file](#add-an-alias-to-your-hosts-file)
 	* [SSH to the sandbox](#ssh-to-the-sandbox)
 	* [Accessing Cloudera Manager](#accessing-cloudera-manager)
 * [Lab 2 - Preparing your instance for labs](#preparing-your-instance-for-labs)
@@ -46,11 +46,11 @@ To prepare the environment:
 	* [Build NiFi Flow](#build-nifi-flow) 
 * [Lab 4 - Conifgure and explore Kafka](#configure-and-explore-kafka)
 * [Lab 5 - Enhance Flow to identify sentiment on comments](#enhance-flow-to-identify-sentiment-on-comments)
-* [Publish Data to Kafka](#publish-data-to-kafka)
+* [Lab 5 - Publish Data to Kafka](#publish-data-to-kafka)
 * [Lab 6 - Configure Spark and Write to Kudu](#configure-spark-and-write-to-kudu)
-* [Use Impala to query Kudu](#use-impala-to-query-kudu)
-* [Lab 7 - Configure Hue](#configure-hue)
-* [Lab 8 - Build Dashboard in Hue](#build-dashboard-with-hue)
+* [Lab 7 - Use Impala to query Kudu](#use-impala-to-query-kudu)
+* [Lab 8 - Configure Hue](#configure-hue)
+* [Lab 9 - Build Dashboard with Hue](#build-dashboard-with-hue)
 
 
 ## Accessing the sandbox
@@ -610,7 +610,7 @@ Additional details on this are available [here](http://gethue.com/how-to-configu
 
 --
 
-## Build Dashboard in Hue
+## Build Dashboard with Hue
 
 - You can now access the Dashboard feature to create charts and widgets using a drag and drop approach. 
 
