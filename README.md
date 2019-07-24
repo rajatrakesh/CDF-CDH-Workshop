@@ -4,12 +4,12 @@
 
 ### Objective
 
-The objective of this lab is to provide hands-on experience on NiFi, Kafka, Spark, Python, Kudu, Impala and Hue through a single use case that brings all these components together in a single use-case. 
+**The objective of this lab is to provide hands-on experience on Cloudera CDF, CDH (Kafka, Spark, Python, Kudu, Impala and Hue) through a single integrated workflow that brings all these components together in a single use-case.** 
 
 For the purpose of this lab, we would build an end-to-end use case that will:
 
 * *Ingest data sets from Meetup.com for a specific event through NiFi*
-* *Parse the dataset and extract key terms, build a sentiment score with StanFord CoreNLP engine*
+* *Parse the dataset and extract key terms from the data set, derive a sentiment rating with StanFord CoreNLP engine*
 * *Configure NiFi with NiFi registry for Version Control*
 * *Setup Kafka Topics to ingest data from NiFi*
 * *Setup Kudu Tables to store the social data*
@@ -24,13 +24,13 @@ You would require an environment where the following are installed and configure
 * Cloudera CDH (Impala, Kudu, Hue)
 * Cloudera Data Flow (Nifi, Registry)
 
-We provide instructions to deploy a single node CDH cluster with all the above pre-requisites configured and installed [Github Repo](https://github.com/fabiog1901/OneNodeCDHCluster)
+We provide instructions to deploy a single node CDH cluster with all the above pre-requisites configured and installed here: [Github Repo](https://github.com/fabiog1901/OneNodeCDHCluster)
 
-Using this repo, you can bring up a CDH cluster (also includes CDSW deployment instructions as well). Alternatively, you can also deploy it as an instance on AWS using a public AMI available (for Cloudera Workshops ONLY). 
+Using this repo, you can bring up a CDH cluster with all components pre-installed (also includes CDSW deployment instructions as well). For specific cloudera workshops, we may provide an AMI image that can be launched without the need to install all components from scratch.
 
 To prepare the environment:
 
-* Deploy the OneNodeCluster using [Github Repo](https://github.com/fabiog1901/OneNodeCDHCluster). This OneNodeCluster Github repo was built by my colleague **Fabio**, who put in a lot of effort to have a single CDSW+CDH+CDF instance that can be leveraged for end-to-end demos and labs.  
+* Deploy the OneNodeCluster using [Github Repo](https://github.com/fabiog1901/OneNodeCDHCluster). This OneNodeCluster Github repo was built by my colleague **Fabio**, who put in a lot of effort to have a single CDSW+CDH+CDF instance that can be leveraged for end-to-end demos and labs.  The deployment takes <30 mins for a built-from-scratch environment.
 
 --
 
@@ -38,6 +38,7 @@ To prepare the environment:
 ### Section 1
 
 * [Lab 1 - Accessing the sandbox](#accessing-the-sandbox)
+* [Lab 2 - Prepare your instance for labs](#prepare-your-instance-for-labs)
 * [Lab 2 - Stream data using NiFi](#stream-data-using-nifi)
 * [Lab 3 - Explore Kafka](#explore-kafka)
 * [Lab 4 - Spark Streaming w/ Python](#stream-with-spark)
@@ -84,10 +85,10 @@ On Windows use [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest
 
 The following services are going to be installed, but initially only Cloudera Manager would be accessible as by default all services would be in shutdown state. 
 
-- Cloudera Manager : 7180
-- NiFi : 8080/nifi
-- NiFi Registry : 18080/nifi-registry
-- Hue : 8888
+- [Cloudera Manager](http://demo.cloudera.com:7180) : 7180
+- [NiFi](http://demo.cloudera.com:8080/nifi) : 8080/nifi
+- [NiFi Registry](http://demo.cloudera.com:18080/nifi-registry) : 18080/nifi-registry
+- [Hue](http://demo.cloudera.com:8888) : 8888
 - CDSW : cdsw.'public-ip of aws instance'.nip.io
 
 Login to [Cloudera Manager](http://demo.cloudera.com:7180) with username/password ```admin/admin```, and familiarize yourself with all the services installed.  For the first startup, especially for CDSW, it could take up to 20 mins. 
@@ -107,11 +108,9 @@ There are a few configuration files and scripts that need to be downloaded in yo
 * Unzip the Stanford NLP package
 * Download Kudu Spark Jar file
 * Download Spark Core Jar file
-* Setup Environment Variable ```kafka_dir``` to the Kafka Installation Directory
-* Setup Environment Variable ```localip``` to the local (private ip) of your instance
-* Setup Environment Variable ```publicip``` to the public ip of your instance
+* Download all scripts needed for labs and setup execute permission
 
-The above setup as well as a few others have been provided in scripts that you can download from here by issueing the following command in terminal/putty:
+The above setup has been provided in a script that you can download from here by issueing the following command in terminal/putty:
 
 	$ wget xx.xx.xx.xx/config_lab.sh
 	$ chmod +x config_lab.sh
@@ -131,15 +130,15 @@ To start the NLP Engine Server, execute the following script:
 
 	$ ./start_nlp_engine.sh
 
-**Referene**: This starts the server by executing the following command:
+**Reference:** This starts the server by executing the following command:
 
 	cd stanford-corenlp-full-2018-10-05
 	java -mx1g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9999 -timeout 15000 </dev/null &>/dev/null &
 
 
-Details on the corenlp server are available here [web service](https://stanfordnlp.github.io/CoreNLP/corenlp-server.html)
+Details on the corenlp server are available here [Stanford NLP](https://stanfordnlp.github.io/CoreNLP/corenlp-server.html)
 
-The script ```1_start_nlp.sh``` will run in the background on port 9999 and you can visit the [web page](http://yourpublicip:9999/) to make sure it's running.
+The script ```1_start_nlp.sh``` will run in the background on port 9999 and you can visit the [NLP Engine](http://demo.cloudera.com:9999/) to make sure it's running.
 
 ![CoreNLP Engine](./images/nlp_01.jpg)
 
