@@ -60,6 +60,26 @@ Add a new line to the existing
 
 Replacing the ip (xx.xx.xx.xx) address with the one provided by Cloudera during the workshop. If you are launching this in your own private AWS instance, then this would be the public IP for this instance. 
 
+### SSH to the sandbox
+
+You would need to download the pem file, to be able to ssh to your instance. The .pem file is available [here](https://rajat-cloudera-bigdatalab.s3-ap-southeast-1.amazonaws.com/sg-cdf-cdp-cdsw-workshop.pem) and the ppk is [here]()
+
+If you are using mac, then open terminal and navigate to the directory where you have downloaded this file and execute the following:
+
+	$ chmod 400 sg-cdf-cdp-cdsw-workshop.pem
+
+Then you can ssh by typing (Public IP to be provided by Cloudera):
+
+	$ ssh -i sg-cdf-cdp-cdsw-workshop.pem centos@public_ip_of_instance
+
+On Mac use the terminal to SSH
+
+On Windows use [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
+
+![Image of Putty ssh](./images/login_with_putty_1.png)
+
+![Image of Putty ssh](./images/login_with_putty_2.png)
+
 ### Accessing Cloudera Manager for the first time and starting up all services. 
 
 The following services are going to be installed, but initially only Cloudera Manager would be accessible as by default all services would be in shutdown state. 
@@ -70,7 +90,9 @@ The following services are going to be installed, but initially only Cloudera Ma
 - Hue : 8888
 - CDSW : cdsw.'public-ip of aws instance'.nip.io
 
-Login to Cloudera Manager with username/password ```admin/admin```, and familiarize yourself with all the services installed.  For the first startup, especially for CDSW, it could take up to 20 mins. 
+Login to [Cloudera Manager](http://demo.cloudera.com:7180) with username/password ```admin/admin```, and familiarize yourself with all the services installed.  For the first startup, especially for CDSW, it could take up to 20 mins. 
+
+**Note: If you are unable to modify your hosts file due to security/other concerns, then you will need to use the Amazon Public IP (provided by Cloudera) whereever you see a reference of demo.cloudera.com.**
 
 **After a successful startup, all services would be showing a green tick.**
 
@@ -107,12 +129,11 @@ The Stanford NLP Engine would be setup in the directory ```/home/centos/stanford
 
 To start the NLP Engine Server, execute the following script:
 
-	$ ./1_start_nlp.sh
+	$ ./start_nlp_engine.sh
 
 **Referene**: This starts the server by executing the following command:
 
-
-	cd /path/to/stanford-corenlp-full-2018-10-05
+	cd stanford-corenlp-full-2018-10-05
 	java -mx1g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9999 -timeout 15000 </dev/null &>/dev/null &
 
 
@@ -303,9 +324,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 - **Setup Kafka Topic**
 	- SSH to your instance. 
 	- Normally, you would need to identify where kafka is installed and then execute a bunch of command line statements to create & list topics. There is a seperate utility for tracking what content is being written in Kafka. For this lab, we have parameterized these statements and provided them via scripts, making it easy to setup the lab.
-	- **Note You can execute the set_env.sh script at the command line to populate the kafka_dir,localip & publicip variables at anytime. This is typically used, if you lose connectivity and need to run commands again.**
-	
-		```$ ./set_env.sh```
+	- **Note While all scripts are parameterized, if you need a scirpt to find out your public/private ip of your instance or the kafka installation diretory, then you case use the 'set_env.sh' script for reference.**
 	
 	- List Kafka Topics by executing the following:
 	
@@ -314,7 +333,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	- By default, your environment will not have any existing Kafka topics setup, hence no topics will be displayed. 
 	- Let's create a Kafka Topic ```meetup_comment_ws``` by executing the following:
 	
-		```$ ./2_create_kafka_topic.sh meetup_comment_ws```
+		```$ ./create_kafka_topic.sh meetup_comment_ws```
 		
 	- Let's check if the topic has been created by executing:
 	
@@ -361,7 +380,7 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Add UpdateAttribute processor and link from EvaluateJsonPath on **matched** relationship
   - Using handy [NiFi's language expression](https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html#dates), add a new attribue ```dateandtime``` with value: ```${timestamp:format("yyyy-MM-dd'T'HH:mm:ss'Z'", "Asia/Singapore")}``` to properties tab
 
-- **Step 6: Prepare attributes list that will be pushed to Kafka with AttributesToJSON processor **
+- **Step 6: Prepare attributes list that will be pushed to Kafka with AttributesToJSON processor**
   - Add AttributesToJSON Processor.
   - Link with UpdateAttribute on **success**.
   - Double click on processor
@@ -372,16 +391,14 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Set Include Core Attributes to **false**
   - Apply changes
   
-- **Step 7: Push the data to Kafka with PublishKafka_2_0 connector 
+- **Step 7: Push the data to Kafka with PublishKafka_2_0 connector**
   - Add PublishKafka_2_0 to the canvas and link from AttributesToJSON on **success** relationship
   - Double click on the processor
   - On settings tab, check all relationships as this is a the last step.
   - On properties tab
   - Change **Kafka Brokers** value to **yourlocalip:9092** (make sure you select your local ip of the instance as kafka will be listening on that. If you are unsure of what is the local ip, you can execute the following:
   
-  		```$ ./set_env.sh```
-  		
-  		```$ echo $localip```
+  		```$ ./show_env.sh```
   
   - Change **Topic Name** value to **meetup_comment_ws**
   - Change **Use Transactions** value to **false**
@@ -440,7 +457,13 @@ You can either keep both Kafka and CDF Flow running till you have 50-100 message
 	- Write this data to Kudu Table we created
 - To execute the Spark process, type the following:
 
-spark-submit --master local[2] --jars kudu-spark2_2.11-1.9.0.jar,spark-core_2.11-1.5.2.logging.jar --packages org.apache.spark:spark-streaming-kafka_2.11:1.6.3 spark_kudu.py
+		$ ./spark_kudu.sh
+	
+- This executes the following command line:
+
+		spark-submit --master local[2] --jars kudu-spark2_2.11-1.9.0.jar,spark-core_2.11-1.5.2.logging.jar --packages org.apache.spark:spark-streaming-kafka_2.11:1.6.3 spark_kudu.py
+		
+- The pySpark code is available in the scripts directory [here](./scripts/spark_kudu.py)
 
 
 ## Configure Hue
