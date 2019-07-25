@@ -156,7 +156,7 @@ To start the NLP Engine Server, execute the following script:
 
 Details on the corenlp server are available here [Stanford NLP](https://stanfordnlp.github.io/CoreNLP/corenlp-server.html)
 
-The script ```1_start_nlp.sh``` will run in the background on port 9999 and you can visit the [NLP Engine](http://demo.cloudera.com:9999/) to make sure it's running.
+The script ```start_nlp_engine.sh``` will run in the background on port 9999 and you can visit the [NLP Engine](http://demo.cloudera.com:9999/) to make sure it's running.
 
 ![CoreNLP Engine](./images/nlp_01.jpg)
 
