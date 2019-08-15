@@ -8,6 +8,7 @@ wget  http://central.maven.org/maven2/org/apache/kudu/kudu-spark2_2.11/1.9.0/kud
 wget https://raw.githubusercontent.com/swordsmanliu/SparkStreamingHbase/master/lib/spark-core_2.11-1.5.2.logging.jar
 wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scripts/create_kafka_topic.sh
 wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scripts/kafka_console.sh
+wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scripts/kafka_console_producer.sh
 wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scripts/list_kafka_topics.sh
 wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scripts/set_env.sh
 wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scripts/spark_kudu.sh
