@@ -57,21 +57,7 @@ To prepare the environment:
 
 ## Accessing the sandbox
 
-### Add an alias to your hosts file
-
-On Mac OS X, open a terminal and vi /etc/hosts
-
-On Windows, open C:\Windows\System32\drivers\etc\hosts
-
-Add a new line to the existing
-
-```xx.xx.xx.xx	demo.cloudera.com```
-
-Replacing the ip (xx.xx.xx.xx) address with the one provided by Cloudera during the workshop. If you are launching this in your own private AWS instance, then this would be the public IP for this instance. 
-
 ### SSH to the sandbox
-
-You would need to download the pem file, to be able to ssh to your instance. The .pem file (Mac) is available [here](https://rajat-cloudera-bigdatalab.s3-ap-southeast-1.amazonaws.com/sg-cdf-cdp-cdsw-workshop.pem) and the ppk (Windows) is [here](https://rajat-cloudera-bigdatalab.s3-ap-southeast-1.amazonaws.com/sg-cdf-cdp-cdsw-workshop.ppk)
 
 If you are using mac, then open terminal and navigate to the directory where you have downloaded this file and execute the following:
 
@@ -89,6 +75,16 @@ On Windows use [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest
 
 ![Image of Putty ssh](./images/putty2.jpg)
 
+
+
+**Important: Before you start with the lab exercises, and if you are using AWS/Azure/Google instance for running this OneNodeCluster, then please ensure that you have opened the following ports (inbound) to your laptop IP.** 
+
+```
+80, 8080, 9999, 22, 7180, 7788, 9991, 10080, 18080
+```
+
+**Some of these ports are also being used by the services to interoperate. Please ensure that you have also opened these ports towards (inbound) your PUBLIC_IP of the instance, in addition to your laptop. If you are doing this in a Cloudera workshop conducted by a Solutions Architect, then this would be addressed by the instructor.** 
+
 [Back to Index](#content)
 
 --
@@ -97,15 +93,15 @@ On Windows use [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest
 
 The following services are going to be installed, but initially only Cloudera Manager would be accessible as by default all services would be in shutdown state. 
 
-- [Cloudera Manager](http://demo.cloudera.com:7180) : 7180
-- [NiFi](http://demo.cloudera.com:8080/nifi) : 8080/nifi
-- [NiFi Registry](http://demo.cloudera.com:18080/nifi-registry) : 18080/nifi-registry
-- [Hue](http://demo.cloudera.com:8888) : 8888
+- Cloudera Manager : http://YOUR_PUBLIC_IP:7180
+- NiFI : http://YOUR_PUBLIC_IP:8080/nifi
+- NiFi Registry: http://YOUR_PUBLIC_IP:18080/nifi-registry
+- Schema Registry: http://YOUR_PUBLIC_IP:7788/
+- Streams Messaging Manager: http://YOUR_PUBLIC_IP:9991/
+- HUE: http://YOUR_PUBLIC_IP:8888
 - CDSW : cdsw.'public-ip of aws instance'.nip.io
 
-Login to [Cloudera Manager](http://demo.cloudera.com:7180) with username/password ```admin/admin```, and familiarize yourself with all the services installed.  For the first startup, especially for CDSW, it could take up to 20 mins. 
-
-**Note: If you are unable to modify your hosts file due to security/other concerns, then you will need to use the Amazon Public IP (provided by Cloudera) whereever you see a reference of demo.cloudera.com.**
+Login to **Cloudera Manager** with username/password ```admin/admin```, and familiarize yourself with all the services installed.  For the first startup, especially for CDSW, it could take up to 20 mins. 
 
 **After a successful startup, all services would be showing a green tick.**
 
@@ -150,11 +146,6 @@ To start the NLP Engine Server, execute the following script:
 
 	$ ./start_nlp_engine.sh
 
-**Reference:** This starts the server by executing the following command:
-
-	cd stanford-corenlp-full-2018-10-05
-	java -mx1g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9999 -timeout 15000 </dev/null &>/dev/null &
-
 
 Details on the corenlp server are available here [Stanford NLP](https://stanfordnlp.github.io/CoreNLP/corenlp-server.html)
 
@@ -188,7 +179,7 @@ To do that we need to score each comment's content against the Stanford CoreNLP'
 
 In real-world use case we would probably filter by event of our interest but for the sake of this workshop we won't and assume all comments are given for the same event: the famous CDF workshop!
 
-Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps below:
+Let's get started... Open the **NiFi UI** and follow the steps below:
 
 - **Step 1: Adding a Processor Group**
 	- Drag the Processor Group to the Canvas and give it a name 'CDF Workshop'. 
@@ -198,7 +189,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	![Add Processor Group](./images/cdf_01.jpg)
 
 - **Step 2: Enabling Nifi Registry**
-	- Open the [Nifi Registry portal](http://demo.cloudera.com:18080/nifi-registry)
+	- Open the **NiFi Registry** Portal
 	
 	![Nifi Registry](./images/cdf_nifi_registry_a.jpg)
 	
@@ -252,8 +243,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
  	 - Enable the controller service (click on the thunder icon) and close the window
  	 - Apply changes
 
- 	 ![ConnectWebSocket Configuration](./images/cdf_websocket_c.jpg) 
- 	 
+![ConnectWebSocket Configuration](./images/cdf_websocket_c.jpg) 
 - **Step 4: Add an UpdateAttribute connector to the canvas**
 	- Double click to open the processor. 
 	- On properties tab add new property mime.type clicking on + icon and give the value ```application/json```. This will tell the next processor that the messages sent by the Meetup WebSocket is in JSON format.
@@ -355,7 +345,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 
   https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/sentiment.avsc
 
-- Access Schema Registry at: YOUR_PUBLIC_IP:7788
+- Access Schema Registry at: http://YOUR_PUBLIC_IP:7788
 
 - In the Schema Registry UI, click the + sign to register a new schema.
 
@@ -417,8 +407,6 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 - If you have setup all services, the Controller Services screen for the Process Group would look as follows:
 
   ![](./images/nifi_schema_registry_e.jpg)
-
-
 
 ## Using Streams Messaging Manager (SMM) to create and manage Kafka Topics
 
@@ -485,16 +473,12 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Add InvokeHTTP processor and link from ReplaceText on **success** relationship
   - Double click on processor and check all relationships except **Response** on settings tab
   - Go to properties tab and set value for **HTTP Method** to **POST**
-  - Set **Remote URL** with value: ```http://yourpublicip:9999/?properties=%7B%22annotators%22%3A%22sentiment%22%2C%22outputFormat%22%3A%22json%22%7D``` which is the url encoded value for ```http://yourpublicip:9999/?properties={"annotators":"sentiment","outputFormat":"json"}```
-  - **Make sure you have used the encoded URL and that you have replaced 'yourpublicip' with your actual IP**
+  - Set **Remote URL** with value: ```http://YOUR_PUBLIC_IP:9999/?properties=%7B%22annotators%22%3A%22sentiment%22%2C%22outputFormat%22%3A%22json%22%7D``` 
+  - **Make sure you have used the encoded URL and that you have replaced 'YOUR_PUBLIC_IP' with your actual IP**
   - Set **Content-Type** to ```application/x-www-form-urlencoded```
   - Apply changes
 
 ![Link Processor](./images/cdf_invokehttp.jpg)
-
-**Important: In case you experience issues with this processor (during execution), you may need to open the port 9999 in your security groups since you are accessing this service. Your AWS security group would look something like below:
-
-![Link Processor](./images/aws_security_group.jpg)
 
 - **Step 4: Add EvalueJsonPath processor to process sentiment**
   - Add EvaluateJsonPath to the canvas and link from InvokeHTTP on **Response** relationship
@@ -509,7 +493,8 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
 
 - **Step 5: Format time [ISO format](https://en.wikipedia.org/wiki/ISO_8601) with UpdateAttribute processor (future use for time based analytics)**
   - Add UpdateAttribute processor and link from EvaluateJsonPath on **matched** relationship
-  - Using handy [NiFi's language expression](https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html#dates), add a new attribue ```dateandtime``` with value: ```${timestamp:format("yyyy-MM-dd'T'HH:mm:ss'Z'", "Asia/Singapore")}``` to properties tab
+  - Using handy [NiFi's language expression](https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html#dates), add a new attribue ```dateandtime``` with value: ```${timestamp:format("yyyy-MM-dd'T'HH:mm:ss'Z'", "Asia/Singapore")}``` to properties tab.
+  - Add another property `message_id` with value: `${uuid}`
 
 ![Link Processor](./images/cdf_updateattribute.jpg)
 
@@ -519,7 +504,7 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Double click on processor
   - On settings tab, check **failure** relationship
   - Go to properties tab
-  - In the Attributes List value set ```dateandtime, country, event, member, sentiment, comment```. We will match this structure later in the table that we will create in Kudu.
+  - In the Attributes List value set `dateandtime, country, event, member, sentiment, comment, message_id`. We will match this structure later in the table that we will create in Kudu.
   - Change Destination to **flowfile-content**
   - Set Include Core Attributes to **false**
   - Apply changes
