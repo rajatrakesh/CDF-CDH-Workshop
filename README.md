@@ -457,12 +457,6 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	
 	- We will revisit SMM once we finish the NiFi flow. 
 	
-	  
-	
-	- 
-	
-	- 
-	
 
 [Back to Index](#content)
 
@@ -594,6 +588,8 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Your canvas should look as follows:
   
   		![](./images/cdf_flow_2.jpg)
+  
+  
 
 [Back to Index](#content)
 
@@ -667,10 +663,6 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 --
 
-[Back to Index](#content)
-
---
-
 ## Configure Spark and Write to Kudu
 
 - We will be using Spark to execute the following script which will 
@@ -732,21 +724,23 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 - Copy and paste the following in the text box:
 
-		[dashboard]
-		  ## Activate the Dashboard link in the menu.
-		  is_enabled=true 
-		  has_sql_enabled=true
-		
-		  [[engines]]
-		
-		    [[[solr]]]
-		    ##  Requires Solr 6+
-		     analytics=true
-		     nesting=true
-		
-		    [[[sql]]]
-		      analytics=true
-		      nesting=true
+   ```
+     [dashboard]
+       ## Activate the Dashboard link in the menu.
+       is_enabled=true 
+       has_sql_enabled=true
+     
+       [[engines]]
+     
+         [[[solr]]]
+         ##  Requires Solr 6+
+          analytics=true
+          nesting=true
+     
+         [[[sql]]]
+           analytics=true
+           nesting=true
+   ```
 
 - Restart Hue for these settings to be applied. 
 
