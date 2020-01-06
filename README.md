@@ -11,6 +11,8 @@ For the purpose of this lab, we would build an end-to-end use case that will:
 * *Ingest data sets from Meetup.com for a specific event through NiFi*
 * *Parse the dataset and extract key terms from the data set, derive a sentiment rating with StanFord CoreNLP engine*
 * *Configure NiFi with NiFi registry for Version Control*
+* Configure Schema Registry for maintaining a schema version that all services will use as reference
+* Configure Streaming Messaging Manager (SMM) to setup and manage Kafka Topics
 * *Setup Kafka Topics to ingest data from NiFi*
 * *Setup Kudu Tables to store the social data*
 * *Leverage Spark, Python to read the data from Kafka and store it in Kudu*
@@ -289,10 +291,12 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 		- comment: ```$.comment```
 	- The message coming out of the processor would look like this:
 
+	```
 	{"visibility":"public","member":{"member_id":11643711,"photo":"https:\/\/secure.meetupstatic.com\/photos\/member\/3\/1\/6\/8\/thumb_273072648.jpeg","member_name":"Loka Murphy"},"comment":"I didn’t when I registered but now thinking I want to try and get one since it’s only taking place once.","id":-259414201,"mtime":1541557753087,"event":{"event_name":"Tunnel to Viaduct 8k Run","event_id":"256109695"},"table_name":"event_comment","group":{"join_mode":"open","country":"us","city":"Seattle","name":"Seattle Green Lake Running Group","group_lon":-122.34,"id":1608555,"state":"WA","urlname":"Seattle-Greenlake-Running-Group","category":{"name":"fitness","id":9,"shortname":"fitness"},"group_photo":{"highres_link":"https:\/\/secure.meetupstatic.com\/photos\/event\/9\/e\/f\/4\/highres_465640692.jpeg","photo_link":"https:\/\/secure.meetupstatic.com\/photos\/event\/9\/e\/f\/4\/600_465640692.jpeg","photo_id":465640692,"thumb_link":"https:\/\/secure.meetupstatic.com\/photos\/event\/9\/e\/f\/4\/thumb_465640692.jpeg"},"group_lat":47.61},"in_reply_to":496130460,"status":"active"}
-	
-	- Link EvaluateJsonPath to UpdateAttribute processor 
+	```
 
+	- Link EvaluateJsonPath to UpdateAttribute processor 
+	
 - **Step 7: Add a AttributesToCSV processor to the canvas**
 	- Double click to open the processor. 
 	- On settings tab, select **failure** relationship
@@ -330,7 +334,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
 	
 	![Link Processor](./images/cdf_flow1.jpg).
 	
-	- To review the actual files being written, ssh to your instance and navigate to the ```/tmp/workshop``` directory.
+	- **Optional**:  To review the actual files being written, ssh to your instance and navigate to the ```/tmp/workshop``` directory.
 	- You will see all the files being written here. You can select any one of them and issue a ```cat <filename>``` command to view the contents as well. 
 	
 	![Link Processor](./images/cdf_flow1_a.jpg).
@@ -368,13 +372,13 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
   Evolve: 				 checked		   	
   ```
 
-  ![Schema Registry](/Users/rajat/OneDrive/OD Github/CDF-CDH-Workshop/images/schema_registry_a.jpg)
+  ![Schema Registry](./images/schema_registry_a.jpg)
 
 - Save the schema.
 
 - Now let's enable the processors in our Process Group to use schemas stored in Schema Registry. Right-click on the Process Group, select **Configure** and navigate to the **Contoller Services** tab. Click the + icon and add a **HortonworksSchemaRegistry** service.
 
-  ![](/Users/rajat/OneDrive/OD Github/CDF-CDH-Workshop/images/nifi_schema_registry_a.jpg)
+  ![](./images/nifi_schema_registry_a.jpg)
 
 - After the service is added, click the service's cog icon, and goto the **Properties** tab and configure it with the following **Schema Registry URL** and click **Apply**.
 
@@ -382,7 +386,7 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
   URL: http://YOUR_PUBLIC_IP:7788/api/v1
   ```
 
-  ![](/Users/rajat/OneDrive/OD Github/CDF-CDH-Workshop/images/nifi_schema_registry_b.jpg)
+  ![](./images/nifi_schema_registry_b.jpg)
 
 - Click on the lighting bolt icon to **enable** the **HortonworksSchemaRegistry** Controller Service. 
 
@@ -396,46 +400,68 @@ Let's get started... Open [NiFi UI](http://demo.cloudera.com:9090/nifi/) and fol
   Schema Name: 						    ${schema.name} -> already set by default
   ```
 
-  ![JSONTreeReader](/Users/rajat/OneDrive/OD Github/CDF-CDH-Workshop/images/nifi_schema_registry_c.jpg)
+  ![JSONTreeReader](./images/nifi_schema_registry_c.jpg)
 
 - JsonRecordSetWriter, with the following properties:
 
   ```
-  Schema Write Strategy:  HWX Schema Reference Attributes
-  Schema Access Strategy: Inherit Record Schema
-  Schema Registry:        HortonworksSchemaRegistry
+  Schema Write Strategy:  		HWX Schema Reference Attributes
+  Schema Access Strategy: 		Inherit Record Schema
+  Schema Registry:        		HortonworksSchemaRegistry
   ```
 
-  ![](/Users/rajat/OneDrive/OD Github/CDF-CDH-Workshop/images/nifi_schema_registry_d.jpg)
+  ![](./images/nifi_schema_registry_d.jpg)
 
 - Enable the **JsonTreeReader** and the **JsonRecordSetWriter** Controller Services you just created, by clicking on their respective *lightning bolt* icons.
 
 - If you have setup all services, the Controller Services screen for the Process Group would look as follows:
 
-  ![](/Users/rajat/OneDrive/OD Github/CDF-CDH-Workshop/images/nifi_schema_registry_e.jpg)
+  ![](./images/nifi_schema_registry_e.jpg)
 
-## Configure and Explore Kafka
 
-- **Setup Kafka Topic**
+
+## Using Streams Messaging Manager (SMM) to create and manage Kafka Topics
+
+- **Accessing SMM**
 	
-	- SSH to your instance. 
-	- Normally, you would need to identify where kafka is installed and then execute a bunch of command line statements to create & list topics. There is a seperate utility for tracking what content is being written in Kafka. For this lab, we have parameterized these statements and provided them via scripts, making it easy to setup the lab.
-	- **Note While all scripts are parameterized, if you need a scirpt to find out your public/private ip of your instance or the kafka installation diretory, then you case use the 'set_env.sh' script for reference.**
+	- SMM Web UI is accessible at: http://YOUR_PUBLIC_IP:9991
 	
-	- List Kafka Topics by executing the following:
+	  ![](./images/smm_a.jpg)
 	
-		```$ ./list_kafka_topics.sh```
-		
-	- By default, your environment will not have any existing Kafka topics setup, hence no topics will be displayed. 
-	- Let's create a Kafka Topic ```meetup_comment_ws``` by executing the following:
+	- Familiarize yourself with the options there, esp the filters (green boxes) at the top of the screen.
 	
-		```$ ./create_kafka_topic.sh meetup_comment_ws```
-		
-	- Let's check if the topic has been created by executing:
+	- The first thing we need to is create a new topic, where we would be sending our data to. Click the third icon on the left in the toolbar (on hovering, it will read 'Topics')
 	
-		```$ ./list_kafka_topics.sh```
+	  ![](./images/smm_b.jpg)
 	
-	![Kafka Topic Setup](./images/cdf_kafka_a.jpg).
+	- This screen lists all the topics that SMM is tracking. Let's create a new topic. Click the 'Add New' button on the right top corner of the screen. 
+	
+	  ![](./images/smm_c.jpg)
+	
+	- In the pop-up screen that opens, select 'Low' option for Availability. Since we are running a singlenodecluster, we don't have replication setup for Kafka, hence we will choose this option. 
+	
+	- Configure the properties on the screen as follows:
+	
+	  ```
+	  Topic Name: 			meetup_comment_ws
+	  Partitions: 			1
+	  Availability:			Low 
+	  Limits:						delete (cleanup policy)
+	  ```
+	
+	  ![](./images/smm_d.jpg)
+	
+	- Click Save.
+	
+	- Currently we are not writing anything to our topic. Any active topics are highlighted as 'Active' on the 'Overview' page. 
+	
+	- We will revisit SMM once we finish the NiFi flow. 
+	
+	  
+	
+	- 
+	
+	- 
 	
 
 [Back to Index](#content)
@@ -506,28 +532,100 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
 
 ![Link Processor](./images/cdf_attributestojson.jpg)
 
-- **Step 7: Push the data to Kafka with PublishKafka_2 _0 connector**
-  - Add PublishKafka_2 _0 to the canvas and link from AttributesToJSON on **success** relationship
-  - Double click on the processor
-  - On settings tab, check all relationships as this is a the last step.
-  - On properties tab
-  - Change **Kafka Brokers** value to ```yourlocalip:9092``` (make sure you select your local ip of the instance as kafka will be listening on that. If you are unsure of what is the local ip, you can execute the following:
+## Incorporating Schema Registry in the NiFi flow
+
+- **Defining Schema Name**
+
+  - We need to tell NiFi which schema should be used to read and right the Message data. For this, we'll use an UpdateAttribute processor to add an attribute to the FlowFile indicating the schema name. 
+
+  - Add an UpdateAttribute processor by dragging the processor icon to the canvas.
+
+  - Double-click the UpdateAttribute processor and configure the settings tab as follows:
+
+    ```
+    Name: 		Set Schema Name
+    ```
+
+  - In the Properties tab, click the + button and add the following properties:
+
+    ```
+    Property Name:		schema.name
+    Property Value: 	SentimentAnalysis
+    ```
+
+    ![](./images/nifi_schema_registry_f.jpg)
+
+  - Click **Apply**.
+
+  - Connect the AttributesToJSON processor to UpdateAttribute Processor on success.
+
+- **Push the data to Kafka**
   
-  		```$ ./show_env.sh```
+  - Add PublishKafkaRecord_2 _0 to the canvas and link from previous UpdateAttribute on **success** relationship. Double click on the processor.
   
-  - Change **Topic Name** value to ```meetup_comment_ws```
-  - Change **Use Transactions** value to **false**
-  - Apply changes.
-
-![Link Processor](./images/cdf_publish_kafka.jpg)
-
-  - CDF Flow is now ready and should look like the following:
-
-![Link Processor](./images/cdf_last_step.jpg)
+  - On the settings tab, select both failure and success for Automatically Terminate Relationships.
+  
+  - On the properties tab, we need to configure the following:
+  
+     ```
+     Kafka Brokers:                         			kafka_broker_ip:9092
+     Topic Name:                            			meetup_comment_ws
+     Record Reader:                         			JsonTreeReader
+     Record Writer:                         			JsonRecordSetWriter
+     Use Transactions:                      			false
+     Attributes to Send as Headers (Regex): 			schema.*
+     ```
+  
+  - Make sure you use the PublishKafkaRecord_2.0 processor and **not** the PublishKafka_2.0.
+  
+  		![](./images/nifi_kafka_a.jpg)
+  
+  - While still in the *PROPERTIES* tab of the *PublishKafkaRecord_2.0* processor, click on the (+) button and add the following property:
+  
+     ```
+     Property Name:  client.id
+     Property Value: nifi-meetup-data
+     ```
+  
+  - The above property will help us clearly identify who is producing data into the Kafka topic.
+  
+  - Click **Apply**.
+  
+  - Your canvas should look as follows:
+  
+  		![](./images/cdf_flow_2.jpg)
 
 [Back to Index](#content)
 
 --
+
+## Using SMM to track messages in Kafka
+
+- Let's start our NiFi Process Group, by click the play button on the Process Group. For tracking, you can also choose to start each processor one-by-one. This will provide clarity into how the flow file changes throughout the NiFi flow. 
+
+- Once the NiFi flow is started, you will see that messages will start to flow into Kafka. 
+
+  ![](./images/nifi_kafka_flow_full.jpg)
+
+- Click on the **Producers** filter and select only the **`nifi-sentiment-data`** producer. 
+
+- If you filter by **Topic** instead and select the `meetup_comment_ws` topic, you’ll be able to see all the **producers** and **consumers** that are writing to and reading from it, respectively. Since we haven’t implemented any consumers yet, the consumer list should be empty.
+
+  ![](./images/smm_e.jpg)
+
+- Click on the topic to explore its details. You can see more details, metrics and the break down per partition. Click on one of the partitions and you’ll see additional information and which producers and consumers interact with that partition.
+
+  ![](./images/smm_f.jpg)
+
+- Click on the **EXPLORE** link to visualize the data in a particular partition. Confirm that there’s data in the Kafka topic and it looks like the JSON produced by NiFi.
+
+  ![](./images/smm_g.jpg)
+
+- Every message has a 'show more'. Clicking that shows the full message coming in. You would notice that the schema is being picked up from Schema Registry. 
+
+  ![](./images/smm_h.jpg)
+
+- Once you see that messages are starting to flow into Kafka, you can stop your CDF flow. We will start it again later once we have setup a table in Kudu and Impala. 
 
 ## Configure Kudu and Impala
 
@@ -545,19 +643,21 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 
 - Execute the following query in the Impala query console
 
-		CREATE TABLE meetup_comment_sentiment
-		(
-		dateandtime string,
-		country string,
-		event string,
-		member string,
-		sentiment string,
-		msgcomment string,
-		 PRIMARY KEY (dateandtime)
-		)
-		PARTITION BY HASH PARTITIONS 10
-		STORED AS KUDU
-		TBLPROPERTIES ('kudu.num_tablet_replicas' = '1');
+   ```
+   CREATE TABLE meetup_comment_sentiment
+   	(
+   	dateandtime string,
+   	country string,
+   	event string,
+   	member string,
+   	sentiment string,
+   	msgcomment string,
+   	 PRIMARY KEY (dateandtime)
+   	)
+   	PARTITION BY HASH PARTITIONS 10
+   	STORED AS KUDU
+   	TBLPROPERTIES ('kudu.num_tablet_replicas' = '1');
+   ```
 
 - Click the blue 'Play' button on the left. You will get a confirmation that the table has been created. 
 
@@ -566,28 +666,6 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
 [Back to Index](#content)
 
 --
-## Publish Data to Kafka
-
-- Before we start pushing the data into Kafka, let's start the Kafka Consumer to see what is coming through CDF (live).
-- To start Kafka Consumer, execute the following script in terminal:
-
-		$./kafka_console.sh meetup_comment_ws
-
-- Kafka will start and your screen will show something similar to below:
-
-![Link Processor](./images/start_kafka.jpg)
-
-- Let's start our CDF flow by clicking the Play button on the CDF Workshop group. 
-
-- You will see the Nifi Flow working. You will see the messages going in and you will be able to see it change if you right click and refresh. 
-
-![Link Processor](./images/cdf_full_flow.jpg)
-
-- And messaged would start showing up in the Kafka Console Window:
-
-![Link Processor](./images/kafka_consumer.jpg)
-
-- You can either keep both Kafka and CDF Flow running till you have 50-100 messages and then stop the CDF Flow by click the 'Stop' button on the 'CDF Workshop' Processor Group.
 
 [Back to Index](#content)
 
