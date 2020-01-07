@@ -143,14 +143,12 @@ For the purpose of this exercise we are not going to train, test and implement a
 
 The Stanford NLP Engine would be setup in the directory ```/home/centos/stanford-corenlp-full-2018-10-05```
 
-To start the NLP Engine Server, execute the following script:
-
-	$ ./start_nlp_engine.sh
+The NLP engine would have been automatically started. (The script `start_nlp_engine.sh` starts this manually, only required if you are troubleshooting). 
 
 
 Details on the corenlp server are available here [Stanford NLP](https://stanfordnlp.github.io/CoreNLP/corenlp-server.html)
 
-The script ```start_nlp_engine.sh``` will run in the background on port 9999 and you can visit the [NLP Engine](http://demo.cloudera.com:9999/) to make sure it's running.
+The NLP Engine will run in the background on port 9999 and you can visit the http://YOUR_PUBLIC_IP:9999 to make sure it's running.
 
 ![CoreNLP Engine](./images/nlp_01.jpg)
 
@@ -180,7 +178,7 @@ To do that we need to score each comment's content against the Stanford CoreNLP'
 
 In real-world use case we would probably filter by event of our interest but for the sake of this workshop we won't and assume all comments are given for the same event: the famous CDF workshop!
 
-Let's get started... Open the **NiFi UI** and follow the steps below:
+Let's get started... Open the **NiFi UI** at http://YOUR_PUBLIC_IP:8080/nifi and follow the steps below:
 
 - **Step 1: Adding a Processor Group**
 	- Drag the Processor Group to the Canvas and give it a name 'CDF Workshop'. 
@@ -190,7 +188,7 @@ Let's get started... Open the **NiFi UI** and follow the steps below:
 	![Add Processor Group](./images/cdf_01.jpg)
 
 - **Step 2: Enabling Nifi Registry**
-	- Open the **NiFi Registry** Portal
+	- Open the **NiFi Registry** Portal at http://YOUR_PUBLIC_IP:18080/nifi-registry
 	
 	![Nifi Registry](./images/cdf_nifi_registry_a.jpg)
 	

@@ -16,3 +16,4 @@ wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scrip
 wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scripts/start_nlp_engine.sh
 wget https://raw.githubusercontent.com/rajatrakesh/CDF-CDH-Workshop/master/scripts/show_env.sh
 chmod +x *.sh
+./start_nlp_engine.sh
