@@ -1,4 +1,4 @@
-# CDF-CDH Labs: Real-time sentiment analysis with NiFi, Kafka, Spark, Python, Kudu, Impala and Hue.
+# CDF-CDH Labs: Real-time sentiment analysis with NiFi, Kafka, Schema Registry, Streams Messaging Manager, Kudu, Impala and Hue.
 
 --
 
@@ -101,7 +101,6 @@ The following services are going to be installed, but initially only Cloudera Ma
 - Schema Registry: http://YOUR_PUBLIC_IP:7788/
 - Streams Messaging Manager: http://YOUR_PUBLIC_IP:9991/
 - HUE: http://YOUR_PUBLIC_IP:8888
-- CDSW : cdsw.'public-ip of aws instance'.nip.io
 
 Login to **Cloudera Manager** with username/password ```admin/admin```, and familiarize yourself with all the services installed.  For the first startup, especially for CDSW, it could take up to 20 mins. 
 
@@ -280,7 +279,7 @@ Let's get started... Open the **NiFi UI** and follow the steps below:
 		- timestamp: ```$.mtime```
 		- member: ```$.member.member_name```
 		- country: ```$.group.country```
-		- comment: ```$.comment```
+		- message_comment: ```$.comment```
 	- The message coming out of the processor would look like this:
 
 	```
@@ -293,7 +292,7 @@ Let's get started... Open the **NiFi UI** and follow the steps below:
 	- Double click to open the processor. 
 	- On settings tab, select **failure** relationship
 	- Change **Destination** value to **flowfile-content**
-	- Change **Attribute List** value to write only the above parsed attributes: **timestamp,event,member,country,comment**
+	- Change **Attribute List** value to write only the above parsed attributes: **timestamp,event,member,country,message_comment**
 	- Set **Include Schema** to **true**
 	- Apply changes
 	- Link AttributesToCSV with EvaluateJsonPath on **matched** relationship
@@ -465,7 +464,7 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Add ReplaceText processor and link from EvaluateJSonPath on **matched** relationship
   - Double click on processor and check **failure** on settings tab
   - Go to properties tab and remove value for **Search Value** and set it to empty string
-  - Set **Replacement Value** with value: ```${comment:replaceAll('\\.', ';')}```. We want to make sure the entire comment is evaluated as one sentence instead of one evaluation per sentence within the same comment.
+  - Set **Replacement Value** with value: ```${message_comment:replaceAll('\\.', ';')}```. We want to make sure the entire comment is evaluated as one sentence instead of one evaluation per sentence within the same comment.
   - Set **Replacement Strategy** to **Always Replace**
   - Apply changes
 
@@ -506,7 +505,7 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   - Double click on processor
   - On settings tab, check **failure** relationship
   - Go to properties tab
-  - In the Attributes List value set `dateandtime, country, event, member, sentiment, comment, message_id`. We will match this structure later in the table that we will create in Kudu.
+  - In the Attributes List value set `dateandtime, country, event, member, sentiment, message_comment, message_id`. We will match this structure later in the table that we will create in Kudu.
   - Change Destination to **flowfile-content**
   - Set Include Core Attributes to **false**
   - Apply changes
@@ -636,7 +635,7 @@ We will now setup a Kudu table with the same schema that we are using in Step 6 
    	event string,
    	member string,
    	sentiment string,
-   	msgcomment string,
+   	message_comment string,
    	 PRIMARY KEY (message_id)
    	)
    	PARTITION BY HASH PARTITIONS 10
@@ -663,10 +662,10 @@ When the meetup data was sent to Kafka using the *PublishKafkaRecord* processor,
 - Properties:
 	
 	```
-	Kafka Broker: 			YOUR_PUBLIC_IP: 9092
+	Kafka Broker: 			internal_ip: 9092
 	Topic Name(s):			meetup_comment_ws
 	Topic Name Format:	names
-	Record Reader:			JsonTreeReader - With schema identifier
+	Record Reader:			JsonTreeReader
 	Record Writer:			JsonRecordSetWriter
 	Honor Transactions:	false
 	Group ID:						nifi-message-consumer
@@ -674,26 +673,27 @@ When the meetup data was sent to Kafka using the *PublishKafkaRecord* processor,
 	Headers to Add as attributes (Regex):		schema.*
 	```
 	
-- We will be using Spark to execute the following script which will 
+	![](./images/nifi_kudu_a.jpg)
 	
-	- Read data from Kakfa Topic
-	- Write this data to Kudu Table we created
+- Add a PutKudu processor to the canvas and configure it as follows:
 	
-- To execute the Spark process, type the following:
-
-		$ ./spark_kudu.sh
+- Properties:
 	
-- This executes the following command line:
-
-		spark-submit --master local[2] --jars kudu-spark2_2.11-1.9.0.jar,spark-core_2.11-1.5.2.logging.jar --packages org.apache.spark:spark-streaming-kafka_2.11:1.6.3 spark_kudu.py
+	```
+	Kudu Masters:			internal_ip:7051
+	Table Name:				impala::default.meetup_comment_sentiment
+	Record Reader: 		JsonTreeReader
+	```
 	
-- The pySpark code is available in the scripts directory [here](./scripts/spark_kudu.py)
+	![](./images/nifi_kudu_b.jpg)
+	
+- Connect the **ConsumeKafkaRecord_2_0** processor to the **PutKudu** one. When prompted, check the **success** relationship for this connection.
+	
+- Double-click on the **PutKudu** processor, go to the **SETTINGS** tab, check the "**success**" relationship in the **AUTOMATICALLY TERMINATED RELATIONSHIPS** section. Click **Apply**.
 
-- On execution, the spark job will start and the data will start showing up in Kudu. 
+- This section looks as follows:
 
-![Link Processor](./images/spark_job.jpg)
-
-- We will check the data being written by Spark by using Hue, in the next segment.
+   ![](./images/nifi_kudu_c.jpg)
 
 [Back to Index](#content)
 

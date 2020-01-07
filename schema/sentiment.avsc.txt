@@ -1,43 +1,43 @@
 {
-  "type": "record",
-  "name": "SentimentAnalysis",
-  "namespace": "com.cloudera.example",
-  "doc": "This is a sample sentiment record",
-  "fields": [
-    {
-      "name": "message_id",
-      "doc": "Comment identification number.",
-      "type": "string"
-    },
-    {
-      "name": "country",
-      "doc": "Country of Origin for the message",
-      "type": "string"
-    },
-    {
-      "name": "sentiment",
-      "doc": "Sentiment Value for the message",
-      "type": "string"
-    },
-    {
-      "name": "member",
-      "doc": "Name of the person who sent the message",
-      "type": "string"
-    },
-    {
-      "name": "comment",
-      "doc": "Original body of the message",
-      "type": "string"
-    },
-    {
-      "name": "event",
-      "doc": "Category of the message",
-      "type": "string"
-    },
-    {
-      "name": "dateandtime",
-      "doc": "Date and Time for the message creation",
-      "type": "string"
-    }
-  ]
+ "type": "record",
+ "name": "SentimentAnalysis",
+ "namespace": "com.cloudera.example",
+ "doc": "This is a sample sentiment record",
+ "fields": [
+  {
+   "name": "message_id",
+   "doc": "Comment identification number.",
+   "type": "string"
+  },
+  {
+   "name": "country",
+   "doc": "Country of Origin for the message",
+   "type": "string"
+  },
+  {
+   "name": "sentiment",
+   "doc": "Sentiment Value for the message",
+   "type": "string"
+  },
+  {
+   "name": "member",
+   "doc": "Name of the person who sent the message",
+   "type": "string"
+  },
+  {
+   "name": "message_comment",
+   "doc": "Original body of the message",
+   "type": "string"
+  },
+  {
+   "name": "event",
+   "doc": "Category of the message",
+   "type": "string"
+  },
+  {
+   "name": "dateandtime",
+   "doc": "Date and Time for the message creation",
+   "type": "string"
+  }
+ ]
 }
