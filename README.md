@@ -550,9 +550,13 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
      Attributes to Send as Headers (Regex): 			schema.*
      ```
   
-  - Make sure you use the PublishKafkaRecord_2.0 processor and **not** the PublishKafka_2.0
+  - Make sure you use the **PublishKafkaRecord_2.0** processor and **NOT** the **PublishKafka_2.0**
   
-  		![](./images/nifi_kafka_a.jpg)
+     
+  
+     ![](./images/nifi_kafka_a.jpg)
+  
+     
   
   - While still in the *PROPERTIES* tab of the ***PublishKafkaRecord_2.0*** processor, click on the (+) button and add the following property:
   
@@ -705,7 +709,7 @@ When the meetup data was sent to Kafka using the *PublishKafkaRecord* processor,
 	
 - If you execute this query a few times, you would be able to see records getting populated into your table. 
 
-![Link Processor](./images/impala_query_a.jpg)
+![](./images/impala_query_a.jpg)
 
 - Let's also check the values of columns. For this, we advise that you use a ```limit``` parameter, if executing a ```select *``` statement, as follows:
 
