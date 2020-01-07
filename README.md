@@ -15,7 +15,6 @@ For the purpose of this lab, we would build an end-to-end use case that will:
 * Configure Streaming Messaging Manager (SMM) to setup and manage Kafka Topics
 * *Setup Kafka Topics to ingest data from NiFi*
 * *Setup Kudu Tables to store the social data*
-* *Leverage Spark, Python to read the data from Kafka and store it in Kudu*
 * *Use Impala to run queries on Kudu*
 * *Build a dashboard in Hue for better visualization of this dataset*
 
