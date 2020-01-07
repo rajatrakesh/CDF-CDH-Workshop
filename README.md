@@ -407,6 +407,10 @@ Let's get started... Open the **NiFi UI** at http://YOUR_PUBLIC_IP:8080/nifi and
 
   ![](./images/nifi_schema_registry_e.jpg)
 
+[Back to Index](#content)
+
+--
+
 ## Using Streams Messaging Manager to create and manage Kafka Topics
 
 - **Accessing SMM**
@@ -510,6 +514,10 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
 
 ![Link Processor](./images/cdf_attributestojson.jpg)
 
+[Back to Index](#content)
+
+--
+
 ## Incorporating Schema Registry in the NiFi flow
 
 - **Defining Schema Name**
@@ -608,6 +616,10 @@ Go back to [NiFi UI](http://demo.cloudera.com:9090/nifi/) and follow the steps b
   ![](./images/smm_h.jpg)
 
 - Once you see that messages are starting to flow into Kafka, you can stop your CDF flow. We will start it again later once we have setup a table in Kudu and Impala. 
+
+[Back to Index](#content)
+
+--
 
 ## Configure Kudu and Impala
 
