@@ -59,7 +59,7 @@ To prepare the environment:
 
 ### SSH to the sandbox
 
-If you are using mac, then open terminal and navigate to the directory where you have downloaded this file and execute the following:
+If you are using mac, then open terminal and navigate to the directory where you have downloaded the .pem file and execute the following:
 
 	$ chmod 400 sg-cdf-cdp-cdsw-workshop.pem
 
@@ -76,6 +76,10 @@ On Windows use [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest
 ![Image of Putty ssh](./images/putty2.jpg)
 
 
+
+In the event you don't have local installation rights, the easiest option is **[Google Secure Shell](https://chrome.google.com/webstore/detail/secure-shell/pnhechapfaindjhompbnflcldabbghjo?hl=en)**.
+
+![](./images/google_shell.jpg)
 
 **Important: Before you start with the lab exercises, and if you are using AWS/Azure/Google instance for running this OneNodeCluster, then please ensure that you have opened the following ports (inbound) to your laptop IP.** 
 
