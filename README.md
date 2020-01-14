@@ -4,7 +4,7 @@
 
 ### Objective
 
-**The objective of this lab is to provide hands-on experience on Cloudera CDF, CDH (Kafka, Spark, Python, Kudu, Impala and Hue) through a single integrated workflow that brings all these components together in a single use-case.** 
+**The objective of this lab is to provide hands-on experience on Cloudera CDF, CDH (NiFi, Schema Registry, Streams Messaging Manager, Kafka, Kudu, Impala and Hue) through a single integrated workflow that brings all these components together in a single use-case.** 
 
 For the purpose of this lab, we would build an end-to-end use case that will:
 
